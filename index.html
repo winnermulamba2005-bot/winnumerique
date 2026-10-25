@@ -46,6 +46,9 @@ section{padding:52px 0;position:relative;overflow:hidden}section>.wrap,.hero>.wr
 .pcap{padding:2px 12px 14px;font-size:15px}.pcap .btn{display:block;margin-top:10px;text-align:center;width:100%}
 .bg{position:absolute;inset:0;width:100%;height:100%;color:var(--blue);opacity:.2;pointer-events:none}.hero .bg{color:#fff;opacity:.2}
 .bg text{fill:currentColor;stroke:none;font:600 16px Archivo,sans-serif}
+.ann{background:var(--yel);color:#111;text-align:center;font:700 15px Archivo,sans-serif;padding:8px 12px}
+.real{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.real img{width:100%;border-radius:10px;display:block}.real figcaption{font-size:14px;color:var(--mute);padding-top:4px}
+.grid2{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 .card{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}
 .card h3{font-size:19px}.card p{margin:0;color:var(--mute);font-size:15px;flex:1}
 .tag{font-size:13px;font-weight:600;color:var(--blue)}
@@ -96,9 +99,9 @@ footer{background:#0a1430;color:#c9d6f5;padding:34px 0 90px;font-size:15px}foote
 <div><span>Logiciel</span><span id="tkSoft">ArchiCAD</span></div><div><span>Lieu</span><span id="tkPlace"></span></div><div><span>Heure</span><span id="tkTime"></span></div><div><span>Statut</span><span style="color:#12805c;font-weight:700">Créneau libre</span></div></div>
 </div></div>
 
-<section id="logiciels"><div class="wrap">
+<section id="logiciels"><span id="installation"></span><div class="wrap">
 <h2>Logiciels disponibles</h2><p class="lead">Choisissez un logiciel, réservez votre créneau d’installation, confirmez sur WhatsApp.</p>
-<div class="chips" id="cats"></div><div class="feed" id="softs"></div></div></section>
+<input id="sq" type="search" placeholder="Rechercher un logiciel…" aria-label="Rechercher un logiciel" style="max-width:460px;margin:0 auto 14px;display:block"><div class="chips" id="cats"></div><div class="feed" id="softs"></div></div></section>
 
 <section id="formations" style="background:var(--blue2)"><div class="wrap">
 <h2>Formations</h2><p class="lead">Inscription en ligne, paiement par Mobile Money.</p>
@@ -107,7 +110,7 @@ footer{background:#0a1430;color:#c9d6f5;padding:34px 0 90px;font-size:15px}foote
 <p id="fDesc" style="margin:0;color:var(--mute)"></p>
 <div class="count" id="count" aria-live="off"></div>
 <ul class="ok" id="fList"></ul><button class="btn alt" id="share">Partager cette formation</button></div>
-<div class="panel"><h3 style="font-size:22px">S’inscrire</h3>
+<div class="panel" id="inscription"><h3 style="font-size:22px">S’inscrire</h3>
 <label for="fn">Nom complet</label><input id="fn" autocomplete="name">
 <label for="fp">Numéro WhatsApp</label><input id="fp" inputmode="tel" autocomplete="tel" placeholder="09X XXX XXXX">
 <label for="fs">Formation</label><select id="fs"></select>
@@ -153,7 +156,7 @@ var CONFIG={
   {lieu:"Kinshasa, Limete — lieu à préciser",quand:"Mercredi 4 nov, 16h00"}
  ],
  formations:[
-  {id:"enscape",tag:"1re édition",titre:"Du croquis papier à la grande maison 3D en rendu réaliste Enscape",desc:"Partez d’un croquis dessiné à la main et finissez avec une maison en 3D rendue en réalisme.",debut:"2026-10-28T09:00:00",prix:"Prix à confirmer",points:["Lecture et reprise d’un croquis papier","Modélisation de la maison en 3D","Matériaux, lumière et rendu réaliste avec Enscape","Supports PDF et vidéos de révision"]}
+  {id:"enscape",tag:"1re édition",titre:"Du croquis papier à la grande maison 3D en rendu réaliste Enscape",desc:"Partez d’un croquis dessiné à la main et finissez avec une maison en 3D rendue en réalisme.",debut:"2026-10-28T09:00:00",lieu:"Kinshasa — lieu à préciser",limite:"2026-10-27",prix:"Prix à confirmer",points:["Lecture et reprise d’un croquis papier","Modélisation de la maison en 3D","Matériaux, lumière et rendu réaliste avec Enscape","Supports PDF et vidéos de révision"]}
  ],
  logiciels:[
   {n:"ArchiCAD",c:"Architecture",d:"Conception BIM : plans, coupes, façades et documents de chantier."},
@@ -185,27 +188,28 @@ $("waFoot").href="https://wa.me/"+CONFIG.whatsapp;$("waFoot").textContent="+"+CO
 var S0=CONFIG.sessions[0];$("tkPlace").textContent=S0.lieu.split("—")[0].trim();$("tkTime").textContent=S0.quand;
 var ti=0;setInterval(function(){ti=(ti+1)%CONFIG.logiciels.length;$("tkSoft").textContent=CONFIG.logiciels[ti].n},2600);
 /* logiciels */
-var cats=["Tous"].concat(CONFIG.logiciels.map(function(x){return x.c}).filter(function(v,i,a){return a.indexOf(v)===i})),cur="Tous";
+var cats=["Tous"].concat(CONFIG.logiciels.map(function(x){return x.c}).filter(function(v,i,a){return a.indexOf(v)===i})),cur="Tous",q="",shown=12;
 function drawSofts(){
- $("cats").innerHTML="";cats.forEach(function(c){var b=document.createElement("button");b.className="chip";b.textContent=c;b.setAttribute("aria-pressed",c===cur);b.onclick=function(){cur=c;drawSofts()};$("cats").appendChild(b)});
- $("softs").innerHTML="";CONFIG.logiciels.filter(function(x){return cur==="Tous"||x.c===cur}).forEach(function(x){
+ $("cats").innerHTML="";cats.forEach(function(c){var b=document.createElement("button");b.className="chip";b.textContent=c;b.setAttribute("aria-pressed",c===cur);b.onclick=function(){cur=c;shown=12;drawSofts()};$("cats").appendChild(b)});
+ $("softs").innerHTML="";var res=CONFIG.logiciels.filter(function(x){return(cur==="Tous"||x.c===cur)&&(!q||(x.n+" "+x.d).toLowerCase().indexOf(q)>-1)});res.slice(0,shown).forEach(function(x){
   var d=document.createElement("article");d.className="post";
   d.innerHTML='<div class="ph"><div class="av"></div><div><b></b><small></small></div></div><div class="pim"></div><div class="pact"><button class="lk" aria-label="J’aime">♡</button><button class="lk">Partager</button></div><div class="pcap"><span></span><button class="btn">Commander</button></div>';
   d.querySelector(".av").textContent=x.n[0];d.querySelector("b").textContent=x.n;d.querySelector("small").textContent=x.c+" · installation disponible";
   var im=d.querySelector(".pim");if(x.img){var i=new Image();i.className="pimg";i.alt=x.n;i.src=x.img;im.appendChild(i)}else{im.innerHTML=poster(x)}
   var lk=d.querySelectorAll(".lk");lk[0].onclick=function(){var on=lk[0].classList.toggle("on");lk[0].textContent=on?"♥":"♡"};
   lk[1].onclick=function(){var t=x.n+" : installation disponible. "+location.href;if(navigator.share){navigator.share({title:x.n,text:t}).catch(function(){})}else{window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank")}};
-  d.querySelector(".pcap span").textContent=x.d;d.querySelector(".pcap .btn").onclick=function(){openOrder("Installation : "+x.n)};$("softs").appendChild(d)})}
-drawSofts();
+  d.querySelector(".pcap span").textContent=x.d;if(x.p){var pr=document.createElement("b");pr.style.cssText="display:block;font:800 20px Archivo,sans-serif;margin-top:6px";pr.textContent=x.p;d.querySelector(".pcap").insertBefore(pr,d.querySelector(".pcap .btn"))}d.querySelector(".pcap .btn").onclick=function(){openOrder("Installation : "+x.n,x)};$("softs").appendChild(d)});if(res.length>shown){var mb=document.createElement("button");mb.className="btn";mb.textContent="Voir plus ("+(res.length-shown)+")";mb.onclick=function(){shown+=12;drawSofts()};$("softs").appendChild(mb)}if(!res.length)$("softs").textContent="Aucun logiciel trouvé."}
+drawSofts();$("sq").oninput=function(){q=this.value.toLowerCase().trim();shown=12;drawSofts()};
 /* modal commande */
-var mode="";
+var mode="",sel=null;
 CONFIG.sessions.forEach(function(s,i){var o=document.createElement("option");o.value=i;o.textContent=s.quand+" — "+s.lieu;$("os").appendChild(o)});
-function openOrder(t){mode=t;$("mT").textContent=t;$("modal").classList.add("on");$("on").focus()}
+function openOrder(t,x){mode=t;sel=x||null;$("mT").textContent=t+(x&&x.p?" — "+x.p:"");$("modal").classList.add("on");$("on").focus()}
 $("oX").onclick=function(){$("modal").classList.remove("on")};
 $("oSend").onclick=function(){var n=$("on").value.trim(),p=$("op").value.trim();if(!n||!p){alert("Entrez votre nom et votre numéro.");return}
- var s=CONFIG.sessions[$("os").value];window.open(wa("Bonjour, je souhaite : "+mode+"\nNom : "+n+"\nWhatsApp : "+p+"\nCréneau : "+s.quand+" — "+s.lieu),"_blank");$("modal").classList.remove("on")};
+ var s=CONFIG.sessions[$("os").value],cd=code(),nm=sel?sel.n:mode,pr=sel&&sel.p?sel.p:"À confirmer";
+ showTicket({titre:"TICKET DE RENDEZ-VOUS",code:cd,rows:[["Logiciel à installer",nm],["Client",n],["WhatsApp",p],["Date et heure",s.quand],["Lieu",s.lieu],["Montant",pr]],note:"Présentez ce ticket le jour de l’installation. Votre rendez-vous est confirmé par notre réponse sur WhatsApp.",msg:"Bonjour, je souhaite un rendez-vous d’installation.\nCode : "+cd+"\nLogiciel : "+nm+"\nNom : "+n+"\nWhatsApp : "+p+"\nCréneau : "+s.quand+" — "+s.lieu+"\nMontant : "+pr});$("modal").classList.remove("on")};
 /* formations */
-var F=CONFIG.formations[0];$("fTag").textContent=F.tag;$("fTitle").textContent=F.titre;$("fDesc").textContent=F.desc;
+var F=CONFIG.formations[0];$("fTag").textContent=F.tag;$("fTitle").textContent=F.titre;$("fDesc").textContent=F.desc;var inf=document.createElement("p");inf.style.cssText="margin:10px 0 0;font-weight:600";inf.textContent=[F.lieu?"Lieu : "+F.lieu:"",F.prix?"Prix : "+F.prix:"",F.limite?"Inscriptions jusqu’au "+fdate(F.limite):""].filter(Boolean).join(" · ");$("fDesc").after(inf);
 F.points.forEach(function(p){var l=document.createElement("li");l.textContent=p;$("fList").appendChild(l)});
 CONFIG.formations.forEach(function(f){var o=document.createElement("option");o.textContent=f.titre;$("fs").appendChild(o)});
 function tick(){var ms=new Date(F.debut)-new Date();if(ms<0){$("count").innerHTML="<b style='font:700 18px Archivo,sans-serif'>La formation a commencé. Inscriptions ouvertes.</b>";return}
@@ -216,8 +220,24 @@ function how(){var pm=document.querySelector("input[name=pm]:checked").value,num
  $("how").className="how on";$("how").innerHTML="<b>Payer par "+pm+"</b><br>Envoyez "+F.prix.toLowerCase()+" au "+num+" ("+CONFIG.titulaire+"), puis envoyez la capture sur WhatsApp. Votre place est confirmée à réception."}
 document.querySelectorAll("input[name=pm]").forEach(function(r){r.onchange=how});how();
 $("reg").onclick=function(){var n=$("fn").value.trim(),p=$("fp").value.trim();if(!n||!p){alert("Entrez votre nom et votre numéro WhatsApp.");return}
- var pm=document.querySelector("input[name=pm]:checked").value;window.open(wa("Inscription formation : "+$("fs").value+"\nNom : "+n+"\nWhatsApp : "+p+"\nPaiement : "+pm+"\nJ’envoie la capture de la transaction ci-après."),"_blank")};
+ var FO2=CONFIG.formations.filter(function(f){return f.titre===$("fs").value})[0]||F;
+ if(FO2.limite&&new Date()>new Date(FO2.limite+"T23:59:59")){alert("Les inscriptions à cette formation sont closes.");return}
+ var pm=document.querySelector("input[name=pm]:checked").value,cd=code();
+ showTicket({titre:"TICKET D’INSCRIPTION",code:cd,rows:[["Formation",FO2.titre],["Participant",n],["WhatsApp",p],["Début de la formation",fdate(FO2.debut)],["Lieu",FO2.lieu||"À préciser"],["Montant à payer",FO2.prix||"À confirmer"],["Paiement par",pm+" au "+(pm==="M-Pesa"?CONFIG.mpesa:CONFIG.airtel)],["Date limite d’inscription",FO2.limite?fdate(FO2.limite):"Non précisée"],["Statut","En attente de paiement"]],note:"Votre place est confirmée dès réception du paiement. Gardez ce ticket et envoyez-le avec la capture de la transaction.",msg:"Bonjour, voici mon inscription.\nCode : "+cd+"\nFormation : "+FO2.titre+"\nNom : "+n+"\nWhatsApp : "+p+"\nPaiement : "+pm+"\nJ’envoie la capture de la transaction."})};
 $("share").onclick=function(){var t="Formation : "+F.titre+". Inscription : "+location.href;if(navigator.share){navigator.share({title:F.titre,text:t}).catch(function(){})}else{window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank")}};
+function code(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",c="TK-";for(var i=0;i<5;i++)c+=a[Math.floor(Math.random()*a.length)];return c}
+function fdate(s){var d=new Date(s.length===10?s+"T12:00:00":s),r=d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});if(s.length>10)r+=" à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});return r}
+function wrap(x,t,w){var o=[],l="";String(t).split(" ").forEach(function(k){var tt=l?l+" "+k:k;if(x.measureText(tt).width>w&&l){o.push(l);l=k}else l=tt});o.push(l);return o}
+function ticketPng(t){var W=700,big=document.createElement("canvas");big.width=W;big.height=1600;var x=big.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,1600);
+ x.fillStyle="#10286b";x.fillRect(0,0,W,96);x.fillStyle="#f5b800";x.fillRect(0,96,W,8);
+ x.fillStyle="#fff";x.font="bold 30px Arial";x.textAlign="left";x.fillText(M,30,58);x.font="bold 17px Arial";x.textAlign="right";x.fillText(t.titre,W-30,56);x.textAlign="left";
+ var y=146;t.rows.forEach(function(r){x.fillStyle="#51607f";x.font="15px Arial";x.fillText(r[0],30,y);y+=26;x.fillStyle="#0d1b3a";x.font="bold 20px Arial";wrap(x,r[1],W-60).forEach(function(l){x.fillText(l,30,y);y+=26});y+=14});
+ y+=6;x.strokeStyle="#9fb0d6";x.setLineDash([8,6]);x.beginPath();x.moveTo(30,y);x.lineTo(W-30,y);x.stroke();x.setLineDash([]);y+=46;
+ x.fillStyle="#10286b";x.font="bold 38px Arial";x.fillText(t.code,30,y);y+=34;x.fillStyle="#51607f";x.font="15px Arial";wrap(x,t.note,W-60).forEach(function(l){x.fillText(l,30,y);y+=22});y+=24;
+ var c=document.createElement("canvas");c.width=W;c.height=y;c.getContext("2d").drawImage(big,0,0);return c.toDataURL("image/png")}
+function showTicket(t){var png=ticketPng(t),ov=document.createElement("div");ov.className="modal on";
+ ov.innerHTML='<div class="panel"><img alt="Ticket" style="width:100%;max-width:none;border:1px solid var(--line);margin:0 0 12px"><p style="display:flex;gap:8px;flex-wrap:wrap;margin:0"><a class="btn dl">Télécharger le ticket</a><a class="btn alt wa2" target="_blank" rel="noopener">Envoyer sur WhatsApp</a><button class="btn alt cl">Fermer</button></p></div>';
+ ov.querySelector("img").src=png;var d=ov.querySelector(".dl");d.href=png;d.download="ticket-"+t.code+".png";ov.querySelector(".wa2").href=wa(t.msg);ov.querySelector(".cl").onclick=function(){ov.remove()};document.body.appendChild(ov)}
 /* ressources et FAQ */
 CONFIG.ressources.forEach(function(r){var a=document.createElement("a");a.href=r.u;a.innerHTML='<span class="tag"></span><br><b></b>';a.children[0].textContent=r.k;a.children[2].textContent=r.t;$("res").appendChild(a)});
 CONFIG.faq.forEach(function(q){var d=document.createElement("details");d.className="card";d.style.marginBottom="10px";d.innerHTML="<summary style='font-weight:700;cursor:pointer'></summary><p style='margin-top:8px'></p>";d.children[0].textContent=q[0];d.children[1].textContent=q[1];$("faq").appendChild(d)});
@@ -241,7 +261,18 @@ plan:'<rect x="80" y="60" width="520" height="340" stroke-width="6"/><path d="M3
 truss:'<path d="M100 260L400 100L700 260zM400 100V260M250 180L400 260M550 180L400 260M250 180V260M550 180V260" stroke-width="3"/><rect x="120" y="260" width="560" height="170" stroke-width="4"/><rect x="170" y="300" width="90" height="70"/><rect x="540" y="300" width="90" height="70"/><rect x="350" y="330" width="100" height="100"/><path d="M20 430H780M100 430v40h600v-40M120 490h560M120 482v16M680 482v16M730 260l10-14h-20zM40 430l-20 20M80 430l-20 20M760 430l-20 20"/><text x="745" y="262">+3,00</text><text x="380" y="512">14 000</text>',
 office:'<rect x="60" y="50" width="360" height="250" stroke-width="4"/><path d="M180 50V300M300 50V300M60 160H420M70 300V240h40v-60h40v120M190 300V200h50v100M250 300V230h40v70M300 300V180h60v120M370 300V250h40v50M0 420H800"/><rect x="380" y="330" width="360" height="20"/><rect x="400" y="350" width="14" height="70"/><rect x="706" y="350" width="14" height="70"/><rect x="620" y="350" width="86" height="70"/><path d="M620 385H706M410 330l16-50h80l16 50M395 330h140M690 330V270l-30-30M640 232l40-14 14 24zM520 80h240M520 150h240"/><rect x="585" y="190" width="80" height="120" rx="28"/><rect x="560" y="316" width="70" height="14" rx="7"/><path d="M585 250h-14v60h14M665 250h14v60h-14M535 80V45h14v35M555 80V50h14v30M575 80V40h14v40M540 150v-40h14v40M560 150v-30h14v30"/><rect x="640" y="96" width="70" height="44"/><path d="M760 420l-12-40h40l-12 40zM768 380c-20-30-30-40-30-60M768 380c10-30 30-40 40-50"/><ellipse cx="560" cy="450" rx="200" ry="22"/>'};
 function addBg(el,k){if(!el)return;el.insertAdjacentHTML("afterbegin",'<svg class="bg" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+BG[k]+'</svg>')}
-addBg(document.querySelector(".hero"),"plan");addBg($("logiciels"),"office");addBg($("formations"),"truss");addBg($("ressources"),"plan");addBg($("contact"),"office");
+/* personnalisation depuis CONFIG (modifiable avec le Studio) */
+var M=CONFIG.marque||"SoftBTP",TH=CONFIG.theme||{},AC=CONFIG.accroche;
+document.title=M+" — Logiciels et formations";document.querySelector(".logo").textContent=M;document.querySelector("footer b").textContent=M;document.querySelector(".chat h4").textContent="Assistant "+M;
+if(TH.jaune)document.documentElement.style.setProperty("--yel",TH.jaune);
+if(TH.bleu&&!matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.style.setProperty("--blue",TH.bleu);document.querySelector(".hero").style.backgroundColor="color-mix(in srgb,"+TH.bleu+" 60%,#000)"}
+if(AC){document.querySelector(".hero h1").textContent=AC.titre;document.querySelector(".hero p").textContent=AC.texte}
+if(CONFIG.annonce){var an=document.createElement("div");an.className="ann";an.textContent=CONFIG.annonce;document.body.insertBefore(an,document.body.firstChild)}
+function sec(t,l,inner){var s=document.createElement("section");s.innerHTML='<div class="wrap"><h2></h2><p class="lead"></p></div>';s.querySelector("h2").textContent=t;s.querySelector(".lead").textContent=l;s.firstChild.appendChild(inner);$("contact").parentNode.insertBefore(s,$("contact"))}
+var RE=CONFIG.realisations||[];if(RE.length){var g=document.createElement("div");g.className="real";RE.forEach(function(r){var f=document.createElement("figure");f.style.margin=0;if(r.img){var i=new Image();i.src=r.img;i.alt=r.titre||"";f.appendChild(i)}var c=document.createElement("figcaption");c.textContent=r.titre||"";f.appendChild(c);g.appendChild(f)});sec("Nos réalisations","Installations, projets et rendus de nos clients.",g)}
+var TE=CONFIG.temoignages||[];if(TE.length){var tg=document.createElement("div");tg.className="grid2";TE.forEach(function(t){var d=document.createElement("blockquote");d.className="card";d.style.margin=0;d.innerHTML="<p></p><b></b>";d.children[0].textContent=t.texte;d.children[1].textContent=t.nom;tg.appendChild(d)});sec("Ils nous font confiance","Témoignages de clients.",tg)}
+var FD=CONFIG.fonds||{hero:"plan",logiciels:"office",formations:"truss",ressources:"plan",contact:"office"};
+[["hero",document.querySelector(".hero")],["logiciels",$("logiciels")],["formations",$("formations")],["ressources",$("ressources")],["contact",$("contact")]].forEach(function(p){if(FD[p[0]]&&FD[p[0]]!=="none")addBg(p[1],FD[p[0]])});
 </script>
 </body>
 </html>
