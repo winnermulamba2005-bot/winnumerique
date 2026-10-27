@@ -37,6 +37,7 @@ img{max-width:170px;border-radius:8px;display:block;margin:6px 0}
 <h2>Logiciels (photos et versions)</h2><input id="lq" placeholder="Rechercher dans mes logiciels…" style="margin-bottom:8px"><div class="box"><label for="bulk">Ajouter plusieurs logiciels d’un coup (un par ligne : Nom | Catégorie | Description | Prix)</label><textarea id="bulk" rows="4" placeholder="Revit | Architecture | Modélisation BIM | 30 $&#10;Photoshop | Design | Retouche photo | 20 $"></textarea><button id="bulkb" class="g">Ajouter ces logiciels</button></div><div id="log"></div>
 <h2>Publicités (mises en avant)</h2><p class="hint">Mets en avant un nouveau logiciel ou une formation, sur l’accueil et/ou après une réservation.</p><div id="pub"></div>
 <h2>Notre histoire</h2><div class="box" id="his"></div>
+<h2>Créer un ticket (commande reçue sur WhatsApp)</h2><p class="hint">Un client commande sur WhatsApp : remplis ses infos, crée le ticket, télécharge l’image et envoie-la lui. Le ticket est enregistré dans mon tableau (onglet Contacts) et le client peut le faire vérifier sur le site.</p><div class="box" id="tkt"></div>
 <h2>Rapport et tickets reçus</h2><div class="box" id="rap"></div>
 <h2>Réalisations (galerie de photos)</h2><div id="rea"></div>
 <h2>Témoignages clients</h2><div id="tem"></div>
@@ -282,4 +283,51 @@ $("pb").onclick=async function(){if(!cfg){alert("Charge d’abord ton site.");re
   if(!p.ok){var er=await p.json().catch(function(){return{}});throw new Error(p.status===401||p.status===403?"Clé refusée, ou sans droit d’écriture : refais la connexion.":p.status===409||p.status===422?"Conflit : recharge le site puis réessaie.":(er.message||"Erreur "+p.status))}
   $("ps").textContent="Publié. Ton site sera à jour dans 1 à 2 minutes (Ctrl + F5)."}catch(e){$("ps").textContent=e.message}};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
-</script></body></html>
+</script><script>
+(function(){
+var T=document.getElementById("tkt");if(!T)return;
+function g(i){return document.getElementById(i)}
+T.innerHTML='<label for="tn">Nom du client</label><input id="tn" autocomplete="off">'
++'<label for="tp">Numéro WhatsApp du client (ex : 0991234567 ou 243991234567)</label><input id="tp" inputmode="tel" autocomplete="off">'
++'<label for="tl">Logiciel(s) à installer</label><input id="tl" list="tld" autocomplete="off" placeholder="Ex : ArchiCAD 2024"><datalist id="tld"></datalist>'
++'<label for="tpr">Prix des logiciels (ex : 30 $)</label><input id="tpr" autocomplete="off">'
++'<label for="tfr">Frais de déplacement (facultatif, même devise)</label><input id="tfr" autocomplete="off">'
++'<label for="td">Date et heure du rendez-vous</label><input id="td" autocomplete="off" placeholder="Ex : Samedi 31 oct, 10h00">'
++'<label for="tlieu">Lieu du rendez-vous</label><input id="tlieu" autocomplete="off">'
++'<button id="tgo">Créer le ticket</button><div id="tout"></div>';
+g("tl").onfocus=function(){var d=g("tld");d.innerHTML="";((window.cfg&&cfg.logiciels)||[]).forEach(function(x){var o=document.createElement("option");o.value=x.n||"";d.appendChild(o)})};
+function num(s){return parseFloat(String(s||"").replace(/[^0-9.,]/g,"").replace(",","."))||0}
+function cur(s){return String(s||"").replace(/[0-9.,\s]/g,"").trim()}
+function tot(a,b){var n=num(a)+num(b);return n?(Math.round(n*100)/100)+" "+(cur(a)||cur(b)||"$"):""}
+function code(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",c="TK-";for(var i=0;i<5;i++)c+=a[Math.floor(Math.random()*a.length)];return c}
+function wrap(x,t,w){var o=[],l="";String(t).split(" ").forEach(function(k){var tt=l?l+" "+k:k;if(x.measureText(tt).width>w&&l){o.push(l);l=k}else l=tt});o.push(l);return o}
+function png(t,M){var W=700,big=document.createElement("canvas");big.width=W;big.height=1600;var x=big.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,1600);
+x.fillStyle="#10286b";x.fillRect(0,0,W,96);x.fillStyle="#f5b800";x.fillRect(0,96,W,8);
+x.fillStyle="#fff";x.font="bold 30px Arial";x.textAlign="left";x.fillText(M,30,58);x.font="bold 17px Arial";x.textAlign="right";x.fillText(t.titre,W-30,56);x.textAlign="left";
+var y=146;t.rows.forEach(function(r){x.fillStyle="#51607f";x.font="15px Arial";x.fillText(r[0],30,y);y+=26;x.fillStyle="#0d1b3a";x.font="bold 20px Arial";wrap(x,r[1],W-60).forEach(function(l){x.fillText(l,30,y);y+=26});y+=14});
+y+=6;x.strokeStyle="#9fb0d6";x.setLineDash([8,6]);x.beginPath();x.moveTo(30,y);x.lineTo(W-30,y);x.stroke();x.setLineDash([]);y+=46;
+x.fillStyle="#10286b";x.font="bold 38px Arial";x.fillText(t.code,30,y);y+=34;x.fillStyle="#51607f";x.font="15px Arial";wrap(x,t.note,W-60).forEach(function(l){x.fillText(l,30,y);y+=22});y+=24;
+var c=document.createElement("canvas");c.width=W;c.height=y;c.getContext("2d").drawImage(big,0,0);return c.toDataURL("image/png")}
+function phone(p){var d=String(p||"").replace(/\D/g,"");if(d.length===10&&d[0]==="0")d="243"+d.slice(1);if(d.length===9)d="243"+d;return d}
+g("tgo").onclick=function(){
+if(!window.cfg){alert("Clique d’abord sur « Charger mon site » en haut de la page.");return}
+var n=g("tn").value.trim(),p=g("tp").value.trim(),l=g("tl").value.trim(),pr=g("tpr").value.trim(),fr=g("tfr").value.trim(),d=g("td").value.trim(),li=g("tlieu").value.trim();
+if(!n||!p||!l){alert("Entre au moins le nom, le numéro WhatsApp et le logiciel.");return}
+var M=cfg.marque||"Win Numérique",cd=code(),total=tot(pr,fr)||pr||"À confirmer";
+var rows=[["Logiciels à installer",l],["Client",n],["WhatsApp",p],["Date et heure",d||"À confirmer"],["Lieu",li||"À confirmer"],["Prix des logiciels",pr||"À confirmer"]];
+if(fr)rows.push(["Frais de déplacement",fr]);rows.push(["Total à payer",total]);
+var details=rows.map(function(r){return r[0]+" : "+r[1]}).join(" | ")+" | Source : commande WhatsApp (ticket créé par "+M+")";
+var RP=cfg.rapport||"",base=(g("base").value||"").trim();if(base&&base.slice(-1)!=="/")base+="/";
+var ver=RP&&base?base+"#verifier-"+cd:"";
+if(RP){try{fetch(RP,{method:"POST",mode:"no-cors",body:JSON.stringify({type:"ticket_rdv",vid:"studio",code:cd,details:details,appareil:"studio",source:"whatsapp",page:"studio"})})}catch(e){}}
+var tk=rows.slice();if(ver)tk.push(["Vérifier l’authenticité",ver]);
+var img=png({titre:"TICKET DE RENDEZ-VOUS",code:cd,rows:tk,note:"Présentez ce ticket le jour de l’installation. Ticket émis suite à votre commande sur WhatsApp."},M);
+var msg="Bonjour "+n+", voici votre ticket de rendez-vous "+M+".\nCode : "+cd+"\nTotal à payer : "+total+(ver?"\nVérifier le ticket : "+ver:"")+"\nEnvoyez-nous la capture du paiement avec ce code. Merci !";
+var O=g("tout");O.innerHTML="";
+var im=document.createElement("img");im.src=img;im.alt="Ticket";im.style.cssText="width:100%;max-width:420px;border:1px solid #cdd6ea;margin:12px 0";O.appendChild(im);
+var a1=document.createElement("a");a1.className="b";a1.textContent="Télécharger l’image du ticket";a1.href=img;a1.download="ticket-"+cd+".png";O.appendChild(a1);
+var a2=document.createElement("a");a2.className="b";a2.textContent="Ouvrir WhatsApp avec le message";a2.target="_blank";a2.rel="noopener";a2.href="https://wa.me/"+phone(p)+"?text="+encodeURIComponent(msg);O.appendChild(a2);
+var h=document.createElement("p");h.className="hint";h.textContent=RP?"Ticket "+cd+" enregistré dans mon tableau (onglet Contacts, statut Nouveau). Dans WhatsApp, joins l’image téléchargée au message. Quand le paiement arrive, je passe le statut en Payé.":"Attention : l’adresse de réception n’est pas branchée, le ticket n’est pas enregistré et ne pourra pas être vérifié sur le site. Dans WhatsApp, joins l’image téléchargée au message.";O.appendChild(h)};
+})();
+</script>
+</body></html>
