@@ -88,21 +88,26 @@ function softExtra(b,o,redraw){
  var l2=document.createElement("label");l2.textContent="Versions et prix (une version = un prix)";b.append(l2);o.versions=o.versions||[];
  o.versions.forEach(function(v,i){var r=document.createElement("div");r.style.cssText="display:flex;gap:6px;margin-bottom:6px";var a=document.createElement("input");a.placeholder="Version (ex : 2024)";a.value=v.nom||"";a.oninput=function(){v.nom=a.value};var c=document.createElement("input");c.placeholder="Prix (ex : 30 $)";c.value=v.prix||"";c.oninput=function(){v.prix=c.value};var x=document.createElement("button");x.className="r";x.textContent="X";x.style.margin="0";x.onclick=function(){o.versions.splice(i,1);redraw()};r.append(a,c,x);b.append(r)});
  var ab=document.createElement("button");ab.className="g";ab.textContent="+ Ajouter une version";ab.onclick=function(){o.versions.push({nom:"",prix:""});redraw()};b.append(ab)}
-var SCRIPT=String.raw`function doPost(e){
+var SCRIPT=String.raw`function doGet(){
+  return ContentService.createTextOutput("Win Numérique : réception active");
+}
+function doPost(e){
   var d={};try{d=JSON.parse(e.postData.contents)}catch(x){}
   var ss=SpreadsheetApp.getActiveSpreadsheet();
   var sh=ss.getSheetByName("Rapport");
-  if(!sh){sh=ss.insertSheet("Rapport");sh.appendRow(["Date","Type","Visiteur","Code","Détails","Appareil","Source","Page"]);resume(ss)}
-  sh.appendRow([new Date(),d.type||"",d.vid||"",d.code||"",d.details||d.logiciel||"",d.appareil||"",d.source||"",d.page||""]);
-  if(d.type=="ticket_rdv"||d.type=="ticket_inscription"){
-    MailApp.sendEmail(Session.getEffectiveUser().getEmail(),"Nouveau ticket "+(d.code||""),(d.type=="ticket_rdv"?"RENDEZ-VOUS":"INSCRIPTION")+"\n\n"+(d.details||""));
+  if(!sh){sh=ss.insertSheet("Rapport");sh.appendRow(["Date","Type","Visiteur","Code","Détails","Appareil","Source","Page","Fuseau"]);resume(ss)}
+  sh.appendRow([new Date(),d.type||"",d.vid||"",d.code||"",d.details||d.logiciel||"",d.appareil||"",d.source||"",d.page||"",d.fuseau||""]);
+  var t=d.type;
+  if(t=="ticket_rdv"||t=="ticket_inscription"||t=="rappel"){
+    var lab=t=="rappel"?"DEMANDE DE RAPPEL":(t=="ticket_rdv"?"RENDEZ-VOUS":"INSCRIPTION");
+    MailApp.sendEmail(Session.getEffectiveUser().getEmail(),(t=="rappel"?"Demande de rappel ":"Nouveau ticket ")+(d.code||""),lab+"\n\n"+(d.details||""));
   }
   return ContentService.createTextOutput("ok");
 }
 function resume(ss){
   var r=ss.getSheetByName("Résumé")||ss.insertSheet("Résumé");
   r.clear();
-  var rows=[["Indicateur","Valeur"],["Visites (pages ouvertes)",'=COUNTIF(Rapport!B:B,"visite")'],["Visiteurs différents",'=IFERROR(COUNTA(UNIQUE(FILTER(Rapport!C2:C,Rapport!B2:B="visite"))),0)'],["Clics sur Commander",'=COUNTIF(Rapport!B:B,"clic_commander")'],["Tickets d’inscription",'=COUNTIF(Rapport!B:B,"ticket_inscription")'],["Tickets de rendez-vous",'=COUNTIF(Rapport!B:B,"ticket_rdv")'],["Clics WhatsApp",'=COUNTIF(Rapport!B:B,"clic_whatsapp")']];
+  var rows=[["Indicateur","Valeur"],["Visites (pages ouvertes)",'=COUNTIF(Rapport!B:B,"visite")'],["Visiteurs différents",'=IFERROR(COUNTA(UNIQUE(FILTER(Rapport!C2:C,Rapport!B2:B="visite"))),0)'],["Visites sur téléphone",'=COUNTIFS(Rapport!B:B,"visite",Rapport!F:F,"téléphone")'],["Visites sur ordinateur",'=COUNTIFS(Rapport!B:B,"visite",Rapport!F:F,"ordinateur")'],["Visites (fuseau Kinshasa)",'=COUNTIFS(Rapport!B:B,"visite",Rapport!I:I,"Africa/Kinshasa")'],["Visites (fuseau Lubumbashi)",'=COUNTIFS(Rapport!B:B,"visite",Rapport!I:I,"Africa/Lubumbashi")'],["Clics sur Commander",'=COUNTIF(Rapport!B:B,"clic_commander")'],["Demandes de rappel",'=COUNTIF(Rapport!B:B,"rappel")'],["Tickets d’inscription",'=COUNTIF(Rapport!B:B,"ticket_inscription")'],["Tickets de rendez-vous",'=COUNTIF(Rapport!B:B,"ticket_rdv")'],["Clics WhatsApp",'=COUNTIF(Rapport!B:B,"clic_whatsapp")']];
   r.getRange(1,1,rows.length,2).setValues(rows);
 }`;
 function histBox(){var H=$("his");H.innerHTML="";inp(H,cfg.histoire,"titre","Titre de la section");inp(H,cfg.histoire,"texte","Mon histoire (laisser vide = section cachée ; sauter une ligne = nouveau paragraphe)","area");
