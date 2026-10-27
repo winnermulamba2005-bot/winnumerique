@@ -23,7 +23,7 @@ img{max-width:170px;border-radius:8px;display:block;margin:6px 0}
 <label for="gr">Dépôt</label><input id="gr" value="winnumerique/winnumerique.github.io">
 <button id="gs" class="g">Enregistrer la connexion</button> <button id="gtst" class="g">Tester la clé</button>
 <p class="hint">La clé reste sur cet appareil seulement. Elle permet de charger et de publier ton site en un clic.</p></details>
-<details style="margin-top:6px"><summary>Ou choisir un fichier à la main</summary><label for="f">Mon fichier index.html</label><input type="file" id="f" accept=".html"></details></div>
+<details style="margin-top:6px"><summary>Ou choisir un fichier à la main</summary><label for="f">Mon fichier index.html</label><input type="file" id="f" accept=".html"><label for="mt">Mettre à jour le modèle du site (je garde mon contenu)</label><input type="file" id="mt" accept=".html"></details></div>
 <div id="app">
 <h2>Informations</h2><div class="box" id="top"></div>
 <h2>Design</h2><div class="box" id="des"></div>
@@ -280,6 +280,7 @@ $("pb").onclick=async function(){if(!cfg){alert("Charge d’abord ton site.");re
   var p=await fetch(u,{method:"PUT",headers:Object.assign({"Content-Type":"application/json"},ghH(false)),body:JSON.stringify(body)});
   if(!p.ok){var er=await p.json().catch(function(){return{}});throw new Error(ghErr(p.status,er.message))}
   $("ps").textContent="Publié. Ton site sera à jour dans 1 à 2 minutes (Ctrl + F5)."}catch(e){$("ps").textContent=e.message}};
+$("mt").onchange=function(){if(!cfg){alert("Clique d’abord sur Charger mon site.");this.value="";return}var fr=new FileReader();fr.onload=function(){var t=fr.result,s=t.indexOf("var CONFIG="),e=t.indexOf("/* ====",s);if(s<0||e<0){alert("Ce fichier n’est pas un index.html du site.");return}src=t;start=s;end=e;$("st").textContent=" Nouveau modèle prêt : clique sur Publier sur mon site."};fr.readAsText($("mt").files[0])};
 function ghErr(s,msg){var g=msg?" GitHub dit : « "+msg+" »":"";
  if(s===401)return"Clé invalide ou expirée (401). Crée une nouvelle clé et enregistre-la."+g;
  if(s===403)return"Cette clé n’a pas le droit d’écrire (403). Vérifie que la clé a Contents : Read and write et que le dépôt choisi est "+GH.repo.split("/")[1]+"."+g;
