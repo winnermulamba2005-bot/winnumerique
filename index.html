@@ -68,9 +68,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .pay label{border:2px solid var(--line);border-radius:8px;padding:10px;margin:0;cursor:pointer;display:flex;gap:8px;align-items:center}
 .pay input{width:auto}.pay label:has(input:checked){border-color:var(--blue);background:var(--blue2)}
 .how{background:var(--blue2);border-radius:8px;padding:12px 14px;margin-top:14px;font-size:15px;display:none}.how.on{display:block}
-.res{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
-.res a{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:14px;text-decoration:none;display:block}
-.res small{color:var(--mute)}
 .steps{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));counter-reset:s}
 .steps div{border-top:4px solid var(--yel);padding-top:10px}.steps div::before{counter-increment:s;content:counter(s);font:800 28px var(--fh),sans-serif;color:var(--blue)}
 .steps b{display:block}
@@ -92,7 +89,7 @@ footer{background:#0a1430;color:#c9d6f5;padding:34px 0 90px;font-size:15px}foote
 </head>
 <body>
 <header><div class="wrap"><a class="logo" href="#top">Win <i>Numérique</i></a>
-<nav><a href="#logiciels">Logiciels</a><a href="#formations">Formations</a><a href="#ressources">Ressources</a><a href="#contact">Contact</a></nav></div></header>
+<nav><a href="#logiciels">Logiciels</a><a href="#formations">Formations</a><a href="#contact">Contact</a></nav></div></header>
 
 <main id="top">
 <div class="hero"><div class="wrap">
@@ -127,8 +124,6 @@ footer{background:#0a1430;color:#c9d6f5;padding:34px 0 90px;font-size:15px}foote
 <section><div class="wrap"><h2>Comment ça marche</h2><p class="lead">Quatre étapes, du choix à l’installation.</p>
 <div class="steps"><div><b>Choisissez</b>Le logiciel ou la formation qu’il vous faut.</div><div><b>Réservez</b>Un créneau d’installation parmi ceux proposés.</div><div><b>Confirmez</b>Votre demande arrive sur WhatsApp, avec un récapitulatif.</div><div><b>Installez et apprenez</b>Installation sur place, puis accès aux vidéos et aux cours.</div></div></div></section>
 
-<section id="ressources"><div class="wrap"><h2>Espace apprentissage</h2><p class="lead">Vidéos, PDF et cours officiels pour progresser seul après l’installation.</p>
-<div class="res" id="res"></div></div></section>
 
 <section id="contact" style="background:var(--blue2)"><div class="wrap"><h2>Questions fréquentes</h2><div id="faq" style="margin-top:14px"></div>
 <p style="margin-top:22px"><a class="btn" id="waMain" target="_blank" rel="noopener">Écrire sur WhatsApp</a> <button class="btn alt" id="rapb2">Être rappelé</button></p></div></section>
@@ -170,12 +165,6 @@ var CONFIG={
   {n:"Enscape",c:"3D et rendu",d:"Rendu temps réel relié à votre logiciel de modélisation."},
   {n:"Pack bureautique",c:"Bureautique",d:"Word, Excel, PowerPoint pour rapports, devis et présentations."}
  ],
- ressources:[
-  {t:"Vidéo : bien démarrer avec ArchiCAD",k:"Vidéo",u:"#"},
-  {t:"Vidéo : lire et coter un plan",k:"Vidéo",u:"#"},
-  {t:"PDF : guide de démarrage AutoCAD",k:"PDF",u:"#"},
-  {t:"Cours officiel Enscape",k:"Cours officiel",u:"#"}
- ],
  faq:[
   ["Comment payer une formation ?","Choisissez M-Pesa ou Airtel Money dans le formulaire, envoyez le montant au numéro affiché, puis envoyez la capture de la transaction sur WhatsApp."],
   ["Où se fait l’installation ?","Au lieu et à l’heure du créneau que vous choisissez. Les créneaux sont publiés sur ce site et mis à jour régulièrement."],
@@ -192,10 +181,10 @@ $("waFoot").href="https://wa.me/"+CONFIG.whatsapp;$("waFoot").textContent="+"+CO
 var S0=CONFIG.sessions[0];$("tkPlace").textContent=S0.lieu.split("—")[0].trim();$("tkTime").textContent=S0.quand;
 var ti=0;setInterval(function(){ti=(ti+1)%CONFIG.logiciels.length;$("tkSoft").textContent=CONFIG.logiciels[ti].n},2600);
 /* logiciels */
-var cats=["Tous"].concat(CONFIG.logiciels.map(function(x){return x.c}).filter(function(v,i,a){return a.indexOf(v)===i})),cur="Tous",q="",SH0=(CONFIG.affichage&&+CONFIG.affichage.depart)||2,SH1=(CONFIG.affichage&&+CONFIG.affichage.pas)||4,shown=SH0;
+var cats=["Tous"].concat(CONFIG.logiciels.map(function(x){return x.c}).filter(function(v,i,a){return a.indexOf(v)===i})),catCur="Tous",q="",SH0=(CONFIG.affichage&&+CONFIG.affichage.depart)||2,SH1=(CONFIG.affichage&&+CONFIG.affichage.pas)||4,shown=SH0;
 function drawSofts(){
- $("cats").innerHTML="";cats.forEach(function(c){var b=document.createElement("button");b.className="chip";b.textContent=c;b.setAttribute("aria-pressed",c===cur);b.onclick=function(){cur=c;shown=SH0;drawSofts()};$("cats").appendChild(b)});
- $("softs").innerHTML="";var res=CONFIG.logiciels.filter(function(x){return(cur==="Tous"||x.c===cur)&&(!q||(x.n+" "+x.d).toLowerCase().indexOf(q)>-1)});res=res.map(function(x,i){return[x,i]}).sort(function(a,b){return(b[0].nouveau==="oui")-(a[0].nouveau==="oui")||a[1]-b[1]}).map(function(p){return p[0]});res.slice(0,shown).forEach(function(x){
+ $("cats").innerHTML="";cats.forEach(function(c){var b=document.createElement("button");b.className="chip";b.textContent=c;b.setAttribute("aria-pressed",c===catCur);b.onclick=function(){catCur=c;shown=SH0;drawSofts()};$("cats").appendChild(b)});
+ $("softs").innerHTML="";var res=CONFIG.logiciels.filter(function(x){return(catCur==="Tous"||x.c===catCur)&&(!q||(x.n+" "+x.d).toLowerCase().indexOf(q)>-1)});res=res.map(function(x,i){return[x,i]}).sort(function(a,b){return(b[0].nouveau==="oui")-(a[0].nouveau==="oui")||a[1]-b[1]}).map(function(p){return p[0]});res.slice(0,shown).forEach(function(x){
   var d=document.createElement("article");d.className="post";
   d.innerHTML='<div class="ph"><div class="av"></div><div><b></b><small></small></div></div><div class="pim"></div><div class="pact"><button class="lk" aria-label="J’aime">♡</button><button class="lk">Partager</button></div><div class="pcap"><span></span><button class="btn">Commander</button><button class="btn alt">Ajouter au panier</button></div>';
   d.querySelector(".av").textContent=x.n[0];d.querySelector("b").textContent=x.n;d.querySelector("small").textContent=(x.nouveau==="oui"?"NOUVEAU · ":"")+x.c+" · installation disponible";
@@ -259,8 +248,7 @@ document.querySelectorAll("input[name=om]").forEach(function(r){r.onchange=upd})
 var RP=CONFIG.rapport||"";
 function vid(){try{var v=localStorage.getItem("wn_vid");if(!v){v=Math.random().toString(36).slice(2,10);localStorage.setItem("wn_vid",v)}return v}catch(e){return"anon"}}
 function track(type,d){if(!RP)return;try{var o=Object.assign({type:type,vid:vid(),page:location.href,appareil:/Mobi|Android/i.test(navigator.userAgent)?"téléphone":"ordinateur",langue:navigator.language,source:document.referrer||"direct",fuseau:(function(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return""}})()},d||{});fetch(RP,{method:"POST",mode:"no-cors",body:JSON.stringify(o)})}catch(e){}}
-/* ressources et FAQ */
-CONFIG.ressources.forEach(function(r){var a=document.createElement("a");a.href=r.u;a.innerHTML='<span class="tag"></span><br><b></b>';a.children[0].textContent=r.k;a.children[2].textContent=r.t;$("res").appendChild(a)});
+/* FAQ */
 CONFIG.faq.forEach(function(q){var d=document.createElement("details");d.className="card";d.style.marginBottom="10px";d.innerHTML="<summary style='font-weight:700;cursor:pointer'></summary><p style='margin-top:8px'></p>";d.children[0].textContent=q[0];d.children[1].textContent=q[1];$("faq").appendChild(d)});
 /* assistant */
 function say(t,c){var m=document.createElement("div");m.className="m "+c;m.textContent=t;$("log").appendChild(m);$("log").scrollTop=1e9}
@@ -294,8 +282,8 @@ if(CONFIG.annonce){var an=document.createElement("div");an.className="ann";an.te
 function sec(t,l,inner,id){var s=document.createElement("section");if(id)s.id=id;s.innerHTML='<div class="wrap"><h2></h2><p class="lead"></p></div>';s.querySelector("h2").textContent=t;s.querySelector(".lead").textContent=l;s.firstChild.appendChild(inner);$("contact").parentNode.insertBefore(s,$("contact"))}
 var RE=CONFIG.realisations||[];if(RE.length){var g=document.createElement("div");g.className="real";RE.forEach(function(r){var f=document.createElement("figure");f.style.margin=0;if(r.img){var i=new Image();i.src=r.img;i.alt=r.titre||"";f.appendChild(i)}var c=document.createElement("figcaption");c.textContent=r.titre||"";f.appendChild(c);g.appendChild(f)});sec("Nos réalisations","Installations, projets et rendus de nos clients.",g)}
 var TE=CONFIG.temoignages||[];if(TE.length){var tg=document.createElement("div");tg.className="grid2";TE.forEach(function(t){var d=document.createElement("blockquote");d.className="card";d.style.margin=0;d.innerHTML="<p></p><b></b>";d.children[0].textContent=t.texte;d.children[1].textContent=t.nom;tg.appendChild(d)});sec("Ils nous font confiance","Témoignages de clients.",tg)}
-var FD=CONFIG.fonds||{hero:"plan",logiciels:"office",formations:"truss",ressources:"plan",contact:"office"};
-[["hero",document.querySelector(".hero")],["logiciels",$("logiciels")],["formations",$("formations")],["ressources",$("ressources")],["contact",$("contact")]].forEach(function(p){if(FD[p[0]]&&FD[p[0]]!=="none")addBg(p[1],FD[p[0]])});
+var FD=CONFIG.fonds||{hero:"plan",logiciels:"office",formations:"truss",contact:"office"};
+[["hero",document.querySelector(".hero")],["logiciels",$("logiciels")],["formations",$("formations")],["contact",$("contact")]].forEach(function(p){if(FD[p[0]]&&FD[p[0]]!=="none")addBg(p[1],FD[p[0]])});
 if(FD.bandeau!=="none"){var bd=document.createElement("div");bd.className="band";bd.id="bandeau";if(CONFIG.photoBandeau){bd.style.backgroundImage="linear-gradient(rgba(5,12,40,.5),rgba(5,12,40,.5)),url("+CONFIG.photoBandeau+")"}else addBg(bd,FD.bandeau||"boss");bd.insertAdjacentHTML("beforeend",'<div class="bt"></div>');bd.querySelector(".bt").textContent=CONFIG.legendeBandeau||"Des outils professionnels pour les grands projets.";$("logiciels").parentNode.insertBefore(bd,$("logiciels"))}
 /* polices */
 var PO=CONFIG.polices||{};[["fh",PO.titres],["fb",PO.texte]].forEach(function(q){if(q[1]){var l=document.createElement("link");l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+q[1].replace(/ /g,"+")+":wght@400;700&display=swap";document.head.appendChild(l);document.documentElement.style.setProperty("--"+q[0],'"'+q[1]+'"')}});
